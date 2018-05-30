@@ -8,4 +8,27 @@
     <artifactId>CalcServices</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <apache.ignite.version>2.4.0</apache.ignite.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+            <version>${apache.ignite.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-spring</artifactId>
+            <version>${apache.ignite.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-indexing</artifactId>
+            <version>${apache.ignite.version}</version>
+        </dependency>
+    </dependencies>
 </project>
