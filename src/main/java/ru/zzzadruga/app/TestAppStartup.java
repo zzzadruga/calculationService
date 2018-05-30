@@ -11,10 +11,9 @@ public class TestAppStartup {
         System.out.println("Connecting to cluster");
 
         CalculationService calculationService = ignite.services().serviceProxy(CalculationService.SERVICE_NAME, CalculationService.class, false);
-        for (int i = 0; i < 10; i++) {
-            System.out.println(calculationService.getSolution("" + i + " + " + 100 * i ));
-        }
 
+        System.out.println(calculationService.getResult("2 + 2 * 2"));
+        System.out.println(calculationService.getResult("1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"));
         System.out.println(calculationService.getHistory());
     }
 }
