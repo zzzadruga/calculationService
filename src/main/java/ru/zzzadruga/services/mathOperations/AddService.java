@@ -1,12 +1,11 @@
 package ru.zzzadruga.services.mathOperations;
 
+import java.math.BigDecimal;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.services.ServiceContext;
 import ru.zzzadruga.services.mathOperations.common.MathOperationService;
-
-import java.math.BigDecimal;
 
 public class AddService implements MathOperationService {
     @IgniteInstanceResource

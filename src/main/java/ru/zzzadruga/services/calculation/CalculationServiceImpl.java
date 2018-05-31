@@ -1,5 +1,10 @@
 package ru.zzzadruga.services.calculation;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteCache;
@@ -14,12 +19,6 @@ import ru.zzzadruga.services.mathOperations.DivideService;
 import ru.zzzadruga.services.mathOperations.MultiplyService;
 import ru.zzzadruga.services.mathOperations.SubtractService;
 import ru.zzzadruga.services.mathOperations.common.MathOperationService;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class CalculationServiceImpl implements CalculationService {
     @IgniteInstanceResource
@@ -49,10 +48,14 @@ public class CalculationServiceImpl implements CalculationService {
     public void execute(ServiceContext ctx) throws Exception {
         System.out.println("Executing Calculation Service on node:" + ignite.cluster().localNode());
         sequence = ignite.atomicSequence("mathExpressionID", 0, true);
-        operations.put(AddService.SERVICE_NAME, ignite.services().serviceProxy(AddService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(DivideService.SERVICE_NAME, ignite.services().serviceProxy(DivideService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(MultiplyService.SERVICE_NAME, ignite.services().serviceProxy(MultiplyService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(SubtractService.SERVICE_NAME, ignite.services().serviceProxy(SubtractService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(AddService.SERVICE_NAME,
+            ignite.services().serviceProxy(AddService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(DivideService.SERVICE_NAME,
+            ignite.services().serviceProxy(DivideService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(MultiplyService.SERVICE_NAME,
+            ignite.services().serviceProxy(MultiplyService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(SubtractService.SERVICE_NAME,
+            ignite.services().serviceProxy(SubtractService.SERVICE_NAME, MathOperationService.class, false));
     }
 
     @Override
@@ -67,7 +70,8 @@ public class CalculationServiceImpl implements CalculationService {
             expression.setDecisionTime(LocalDateTime.now());
             stagingArea.put(mathExpressionID, expression);
             return "Result: " + expression.getResult();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return e.getMessage();
         }
 
@@ -75,16 +79,17 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     public List<String> getHistory() {
-        return stagingArea.getAll(keys).entrySet().stream().map(entry -> entry.getValue().toString()).collect(Collectors.toList());
+        return stagingArea.getAll(keys).entrySet().stream()
+            .map(entry -> entry.getValue().toString()).collect(Collectors.toList());
     }
 
     @Override
     public String getStatistics() {
-        return  "Total expressions: " + sequence.get() + "\n" +
-                "Total operations: " + operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum() + "\n" +
-                "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount() + "\n" +
-                "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount() + "\n" +
-                "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount() + "\n" +
-                "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount();
+        return "Total expressions: " + sequence.get() + "\n" +
+            "Total operations: " + operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum() + "\n" +
+            "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount() + "\n" +
+            "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount() + "\n" +
+            "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount() + "\n" +
+            "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount();
     }
 }

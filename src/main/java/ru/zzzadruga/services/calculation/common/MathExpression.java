@@ -58,11 +58,11 @@ public class MathExpression {
     @Override
     public String toString() {
         return "MathExpression{" +
-                "mathExpression='" + mathExpression + '\'' +
-                ", additionTime=" + additionTime +
-                ", decisionTime=" + decisionTime +
-                ", isValid=" + isValid +
-                ", result=" + result +
-                '}';
+            "mathExpression='" + mathExpression + '\'' +
+            ", additionTime=" + additionTime +
+            ", decisionTime=" + decisionTime +
+            ", isValid=" + isValid +
+            ", result=" + result +
+            '}';
     }
 }

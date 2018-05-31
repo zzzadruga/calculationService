@@ -1,13 +1,19 @@
 package ru.zzzadruga.services.calculation;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.StringTokenizer;
 import ru.zzzadruga.services.mathOperations.AddService;
 import ru.zzzadruga.services.mathOperations.DivideService;
 import ru.zzzadruga.services.mathOperations.MultiplyService;
 import ru.zzzadruga.services.mathOperations.SubtractService;
 import ru.zzzadruga.services.mathOperations.common.MathOperationService;
-
-import java.math.BigDecimal;
-import java.util.*;
 
 public class ReversePolishNotation {
 
@@ -22,9 +28,8 @@ public class ReversePolishNotation {
         MAIN_MATH_OPERATIONS.put("-", 3);
     }
 
-
     private static String sortingStation(String expression, Map<String, Integer> operations, String leftBracket,
-                                         String rightBracket) throws Exception {
+        String rightBracket) throws Exception {
         if (expression == null || expression.length() == 0)
             throw new Exception("Expression isn't specified.");
         if (operations == null || operations.isEmpty())
@@ -34,14 +39,11 @@ public class ReversePolishNotation {
 
         Stack<String> stack = new Stack<>();
 
-
         expression = expression.replace(" ", "");
-
 
         Set<String> operationSymbols = new HashSet<>(operations.keySet());
         operationSymbols.add(leftBracket);
         operationSymbols.add(rightBracket);
-
 
         int index = 0;
 
@@ -60,7 +62,8 @@ public class ReversePolishNotation {
 
             if (nextOperationIndex == expression.length()) {
                 findNext = false;
-            } else {
+            }
+            else {
 
                 if (index != nextOperationIndex) {
                     out.add(expression.substring(index, nextOperationIndex));
@@ -68,7 +71,8 @@ public class ReversePolishNotation {
 
                 if (nextOperation.equals(leftBracket)) {
                     stack.push(nextOperation);
-                } else if (nextOperation.equals(rightBracket)) {
+                }
+                else if (nextOperation.equals(rightBracket)) {
                     while (!stack.peek().equals(leftBracket)) {
                         out.add(stack.pop());
                         if (stack.empty()) {
@@ -76,9 +80,10 @@ public class ReversePolishNotation {
                         }
                     }
                     stack.pop();
-                } else {
+                }
+                else {
                     while (!stack.empty() && !stack.peek().equals(leftBracket) &&
-                            (operations.get(nextOperation) >= operations.get(stack.peek()))) {
+                        (operations.get(nextOperation) >= operations.get(stack.peek()))) {
                         out.add(stack.pop());
                     }
                     stack.push(nextOperation);
@@ -103,13 +108,12 @@ public class ReversePolishNotation {
         return result.toString();
     }
 
-
     public static String sortingStation(String expression, Map<String, Integer> operations) throws Exception {
         return sortingStation(expression, operations, "(", ")");
     }
 
-
-    public static BigDecimal calculateExpression(String expression, Map<String, MathOperationService> operation) throws Exception {
+    public static BigDecimal calculateExpression(String expression,
+        Map<String, MathOperationService> operation) throws Exception {
         String rpn = sortingStation(expression, MAIN_MATH_OPERATIONS);
         StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
         Stack<BigDecimal> stack = new Stack<BigDecimal>();
@@ -119,32 +123,25 @@ public class ReversePolishNotation {
             if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
                 try {
                     stack.push(new BigDecimal(token));
-                } catch (NumberFormatException e) {
+                }
+                catch (NumberFormatException e) {
                     throw new Exception("Operands \"" + token + "\" is not valid");
                 }
-            } else {
+            }
+            else {
                 BigDecimal operand2 = stack.pop();
                 BigDecimal operand1 = stack.empty() ? BigDecimal.ZERO : stack.pop();
                 if (token.equals("*")) {
                     stack.push(operation.get(MultiplyService.SERVICE_NAME).calculate(operand1, operand2));
-                } else if (token.equals("/")) {
+                }
+                else if (token.equals("/")) {
                     stack.push(operation.get(DivideService.SERVICE_NAME).calculate(operand1, operand2));
-                } else if (token.equals("+")) {
+                }
+                else if (token.equals("+")) {
                     stack.push(operation.get(AddService.SERVICE_NAME).calculate(operand1, operand2));
-                } else if (token.equals("-")) {
+                }
+                else if (token.equals("-")) {
                     stack.push(operation.get(SubtractService.SERVICE_NAME).calculate(operand1, operand2));
-                } else if (token.equals("%")) {
-                    token = tokenizer.nextToken();
-                    if (token.equals("*")) {
-                        stack.push(operand1.multiply(operand2.divide(BigDecimal.valueOf(100))));
-                    } else if (token.equals("/")) {
-                        stack.push(operand1.divide(operand1.multiply(operand2.divide(BigDecimal.valueOf(100)))));
-                    } else if (token.equals("+")) {
-                        stack.push(operand1.multiply(operand2.divide(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(1))));
-                    } else if (token.equals("-")) {
-                        stack.push(operand1.subtract(operand1.multiply(operand2.divide(BigDecimal.valueOf(100)))));
-                    }
-
                 }
             }
         }
@@ -152,7 +149,6 @@ public class ReversePolishNotation {
             throw new Exception("Expression syntax error.");
         return stack.pop();
     }
-
 
     private ReversePolishNotation() {
     }
