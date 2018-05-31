@@ -10,4 +10,6 @@ public interface CalculationService extends Service {
     String getResult(String mathExpression);
 
     List<String> getHistory();
+
+    String getStatistics();
 }
