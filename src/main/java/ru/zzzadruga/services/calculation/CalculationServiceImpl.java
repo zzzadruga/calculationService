@@ -7,10 +7,14 @@ import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.services.ServiceContext;
 import ru.zzzadruga.services.calculation.common.CalculationService;
 import ru.zzzadruga.services.calculation.common.MathExpression;
+import ru.zzzadruga.services.mathOperations.AddService;
+import ru.zzzadruga.services.mathOperations.DivideService;
+import ru.zzzadruga.services.mathOperations.MultiplyService;
+import ru.zzzadruga.services.mathOperations.SubtractService;
+import ru.zzzadruga.services.mathOperations.common.MathOperationService;
+
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CalculationServiceImpl implements CalculationService {
@@ -20,6 +24,8 @@ public class CalculationServiceImpl implements CalculationService {
     private IgniteCache<Long, MathExpression> stagingArea;
 
     private IgniteAtomicSequence sequence;
+
+    Map<String, MathOperationService> operations = new HashMap<>();
 
     @Override
     public void cancel(ServiceContext ctx) {
@@ -36,6 +42,10 @@ public class CalculationServiceImpl implements CalculationService {
     public void execute(ServiceContext ctx) throws Exception {
         System.out.println("Executing Calculation Service on node:" + ignite.cluster().localNode());
         sequence = ignite.atomicSequence("mathExpressionID", 0, true);
+        operations.put(AddService.SERVICE_NAME, ignite.services().serviceProxy(AddService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(DivideService.SERVICE_NAME, ignite.services().serviceProxy(DivideService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(MultiplyService.SERVICE_NAME, ignite.services().serviceProxy(MultiplyService.SERVICE_NAME, MathOperationService.class, false));
+        operations.put(SubtractService.SERVICE_NAME, ignite.services().serviceProxy(SubtractService.SERVICE_NAME, MathOperationService.class, false));
     }
 
     @Override
@@ -43,13 +53,13 @@ public class CalculationServiceImpl implements CalculationService {
         long mathExpressionID = sequence.getAndIncrement();
         MathExpression expression = new MathExpression(mathExpression, LocalDateTime.now());
         stagingArea.put(mathExpressionID, expression);
-        try{
-            expression.setResult(ReversePolishNotation.calculateExpression(mathExpression));
+        try {
+            expression.setResult(ReversePolishNotation.calculateExpression(mathExpression, operations));
             expression.setValid(true);
             expression.setDecisionTime(LocalDateTime.now());
             stagingArea.put(mathExpressionID, expression);
             return "Result: " + expression.getResult();
-        } catch (Exception e){
+        } catch (Exception e) {
             return e.getMessage();
         }
 
@@ -59,13 +69,18 @@ public class CalculationServiceImpl implements CalculationService {
     public List<String> getHistory() {
         Set<Long> allKeys = new HashSet<>();
         for (int i = 1; i <= sequence.get(); i++) {
-            allKeys.add((long)i);
+            allKeys.add((long) i);
         }
         return stagingArea.getAll(allKeys).entrySet().stream().map(entry -> entry.getValue().toString()).collect(Collectors.toList());
     }
 
     @Override
     public String getStatistics() {
-        return "Total expressions: " + sequence.get() + "\n";
+        return  "Total expressions: " + sequence.get() + "\n" +
+                "Total operations: " + operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum() + "\n" +
+                "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount()  + "\n" +
+                "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount()  + "\n" +
+                "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount()  + "\n" +
+                "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount()  + "\n";
     }
 }

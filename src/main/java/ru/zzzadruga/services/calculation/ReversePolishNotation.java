@@ -1,14 +1,20 @@
 package ru.zzzadruga.services.calculation;
 
+import ru.zzzadruga.services.mathOperations.AddService;
+import ru.zzzadruga.services.mathOperations.DivideService;
+import ru.zzzadruga.services.mathOperations.MultiplyService;
+import ru.zzzadruga.services.mathOperations.SubtractService;
+import ru.zzzadruga.services.mathOperations.common.MathOperationService;
+
 import java.math.BigDecimal;
 import java.util.*;
 
 public class ReversePolishNotation {
 
-    public static final Map<String, Integer> MAIN_MATH_OPERATIONS;
+    private static final Map<String, Integer> MAIN_MATH_OPERATIONS;
 
     static {
-        MAIN_MATH_OPERATIONS = new HashMap<String, Integer>();
+        MAIN_MATH_OPERATIONS = new HashMap<>();
         MAIN_MATH_OPERATIONS.put("%", 1);
         MAIN_MATH_OPERATIONS.put("*", 2);
         MAIN_MATH_OPERATIONS.put("/", 2);
@@ -17,22 +23,22 @@ public class ReversePolishNotation {
     }
 
 
-    public static String sortingStation(String expression, Map<String, Integer> operations, String leftBracket,
-                                        String rightBracket) throws Exception {
+    private static String sortingStation(String expression, Map<String, Integer> operations, String leftBracket,
+                                         String rightBracket) throws Exception {
         if (expression == null || expression.length() == 0)
             throw new Exception("Expression isn't specified.");
         if (operations == null || operations.isEmpty())
             throw new Exception("Operations aren't specified.");
 
-        List<String> out = new ArrayList<String>();
+        List<String> out = new ArrayList<>();
 
-        Stack<String> stack = new Stack<String>();
+        Stack<String> stack = new Stack<>();
 
 
         expression = expression.replace(" ", "");
 
 
-        Set<String> operationSymbols = new HashSet<String>(operations.keySet());
+        Set<String> operationSymbols = new HashSet<>(operations.keySet());
         operationSymbols.add(leftBracket);
         operationSymbols.add(rightBracket);
 
@@ -103,7 +109,7 @@ public class ReversePolishNotation {
     }
 
 
-    public static BigDecimal calculateExpression(String expression) throws Exception {
+    public static BigDecimal calculateExpression(String expression, Map<String, MathOperationService> operation) throws Exception {
         String rpn = sortingStation(expression, MAIN_MATH_OPERATIONS);
         StringTokenizer tokenizer = new StringTokenizer(rpn, " ");
         Stack<BigDecimal> stack = new Stack<BigDecimal>();
@@ -113,20 +119,20 @@ public class ReversePolishNotation {
             if (!MAIN_MATH_OPERATIONS.keySet().contains(token)) {
                 try {
                     stack.push(new BigDecimal(token));
-                } catch (NumberFormatException e){
+                } catch (NumberFormatException e) {
                     throw new Exception("Operands \"" + token + "\" is not valid");
                 }
             } else {
                 BigDecimal operand2 = stack.pop();
                 BigDecimal operand1 = stack.empty() ? BigDecimal.ZERO : stack.pop();
                 if (token.equals("*")) {
-                    stack.push(operand1.multiply(operand2));
+                    stack.push(operation.get(MultiplyService.SERVICE_NAME).calculate(operand1, operand2));
                 } else if (token.equals("/")) {
-                    stack.push(operand1.divide(operand2));
+                    stack.push(operation.get(DivideService.SERVICE_NAME).calculate(operand1, operand2));
                 } else if (token.equals("+")) {
-                    stack.push(operand1.add(operand2));
+                    stack.push(operation.get(AddService.SERVICE_NAME).calculate(operand1, operand2));
                 } else if (token.equals("-")) {
-                    stack.push(operand1.subtract(operand2));
+                    stack.push(operation.get(SubtractService.SERVICE_NAME).calculate(operand1, operand2));
                 } else if (token.equals("%")) {
                     token = tokenizer.nextToken();
                     if (token.equals("*")) {
