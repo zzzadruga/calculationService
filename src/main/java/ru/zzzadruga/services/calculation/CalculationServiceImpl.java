@@ -3,6 +3,8 @@ package ru.zzzadruga.services.calculation;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteSet;
+import org.apache.ignite.configuration.CollectionConfiguration;
 import org.apache.ignite.resources.IgniteInstanceResource;
 import org.apache.ignite.services.ServiceContext;
 import ru.zzzadruga.services.calculation.common.CalculationService;
@@ -14,7 +16,9 @@ import ru.zzzadruga.services.mathOperations.SubtractService;
 import ru.zzzadruga.services.mathOperations.common.MathOperationService;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CalculationServiceImpl implements CalculationService {
@@ -22,6 +26,8 @@ public class CalculationServiceImpl implements CalculationService {
     private Ignite ignite;
 
     private IgniteCache<Long, MathExpression> stagingArea;
+
+    private IgniteSet<Long> keys;
 
     private IgniteAtomicSequence sequence;
 
@@ -35,7 +41,8 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     public void init(ServiceContext ctx) throws Exception {
         System.out.println("Initializing Calculation Service on node:" + ignite.cluster().localNode());
-        stagingArea = ignite.cache("staging-area");
+        stagingArea = ignite.cache("math.expressions");
+        keys = ignite.set("keys", new CollectionConfiguration().setGroupName("keys.group"));
     }
 
     @Override
@@ -53,6 +60,7 @@ public class CalculationServiceImpl implements CalculationService {
         long mathExpressionID = sequence.getAndIncrement();
         MathExpression expression = new MathExpression(mathExpression, LocalDateTime.now());
         stagingArea.put(mathExpressionID, expression);
+        keys.add(mathExpressionID);
         try {
             expression.setResult(ReversePolishNotation.calculateExpression(mathExpression, operations));
             expression.setValid(true);
@@ -67,20 +75,16 @@ public class CalculationServiceImpl implements CalculationService {
 
     @Override
     public List<String> getHistory() {
-        Set<Long> allKeys = new HashSet<>();
-        for (int i = 1; i <= sequence.get(); i++) {
-            allKeys.add((long) i);
-        }
-        return stagingArea.getAll(allKeys).entrySet().stream().map(entry -> entry.getValue().toString()).collect(Collectors.toList());
+        return stagingArea.getAll(keys).entrySet().stream().map(entry -> entry.getValue().toString()).collect(Collectors.toList());
     }
 
     @Override
     public String getStatistics() {
         return  "Total expressions: " + sequence.get() + "\n" +
                 "Total operations: " + operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum() + "\n" +
-                "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount()  + "\n" +
-                "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount()  + "\n" +
-                "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount()  + "\n" +
-                "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount()  + "\n";
+                "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount() + "\n" +
+                "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount() + "\n" +
+                "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount() + "\n" +
+                "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount();
     }
 }

@@ -15,7 +15,8 @@
         <property name="cacheConfiguration">
             <list>
                 <bean class="org.apache.ignite.configuration.CacheConfiguration">
-                    <property name="name" value="staging-area"/>
+                    <property name="name" value="math.expressions"/>
+                    <property name="groupName" value="math.expressions.group"/>
                 </bean>
             </list>
         </property>
