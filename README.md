@@ -1,5 +1,5 @@
-#Apache Ignite Microservice
-###Calculate math expression
+<h1> Apache Ignite Microservice </h1>
+<h2> Calculate math expression </h2>
 
 To execute the example do the following:
 <lu>
@@ -19,7 +19,7 @@ Start one or more instances of Multiply service nodes using MultiplyServiceNodeS
 Start one or more instances of Divide service nodes using DivideServiceNodeStartup.
 </li>
 <li>
-Start one or more instances of Calculation service nodes using CalculationServiceNodeStartup.
+Start one instance of Calculation service nodes using CalculationServiceNodeStartup.
 </li>
 <li>
 Execute an internal test application (connects to the microservices using Ignite API) using TestAppStartup.

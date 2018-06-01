@@ -11,7 +11,9 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteSet;
 import org.apache.ignite.configuration.CollectionConfiguration;
 import org.apache.ignite.resources.IgniteInstanceResource;
+import org.apache.ignite.services.ServiceConfiguration;
 import org.apache.ignite.services.ServiceContext;
+import ru.zzzadruga.common.CommonConfigs;
 import ru.zzzadruga.services.calculation.common.CalculationService;
 import ru.zzzadruga.services.calculation.common.MathExpression;
 import ru.zzzadruga.services.mathOperations.AddService;
@@ -48,14 +50,10 @@ public class CalculationServiceImpl implements CalculationService {
     public void execute(ServiceContext ctx) throws Exception {
         System.out.println("Executing Calculation Service on node:" + ignite.cluster().localNode());
         sequence = ignite.atomicSequence("mathExpressionID", 0, true);
-        operations.put(AddService.SERVICE_NAME,
-            ignite.services().serviceProxy(AddService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(DivideService.SERVICE_NAME,
-            ignite.services().serviceProxy(DivideService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(MultiplyService.SERVICE_NAME,
-            ignite.services().serviceProxy(MultiplyService.SERVICE_NAME, MathOperationService.class, false));
-        operations.put(SubtractService.SERVICE_NAME,
-            ignite.services().serviceProxy(SubtractService.SERVICE_NAME, MathOperationService.class, false));
+        for (Map.Entry<String, ServiceConfiguration> entry : CommonConfigs.MATH_SERVICES_CONFIG().entrySet()) {
+            operations.put(entry.getKey(),
+                ignite.services().serviceProxy(entry.getKey(), MathOperationService.class, false));
+        }
     }
 
     @Override
