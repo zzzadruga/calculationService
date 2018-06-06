@@ -1,6 +1,7 @@
 package ru.zzzadruga.services.calculation;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,9 @@ public class CalculationServiceImpl implements CalculationService {
 
     private IgniteAtomicSequence sequence;
 
-    Map<String, MathOperationService> operations = new HashMap<>();
+    private Map<String, MathOperationService> operations = new HashMap<>();
+
+    private long amount;
 
     @Override
     public void cancel(ServiceContext ctx) {
@@ -44,10 +47,12 @@ public class CalculationServiceImpl implements CalculationService {
         System.out.println("Initializing Calculation Service on node:" + ignite.cluster().localNode());
         stagingArea = ignite.cache("math.expressions");
         keys = ignite.set("keys", new CollectionConfiguration().setGroupName("keys.group"));
+
     }
 
     @Override
     public void execute(ServiceContext ctx) throws Exception {
+        ctx.executionId();
         System.out.println("Executing Calculation Service on node:" + ignite.cluster().localNode());
         sequence = ignite.atomicSequence("mathExpressionID", 0, true);
         for (Map.Entry<String, ServiceConfiguration> entry : CommonConfigs.MATH_SERVICES_CONFIG().entrySet()) {
@@ -67,6 +72,7 @@ public class CalculationServiceImpl implements CalculationService {
             expression.setValid(true);
             expression.setDecisionTime(LocalDateTime.now());
             stagingArea.put(mathExpressionID, expression);
+            recalculateAmount();
             return "Result: " + expression.getResult();
         }
         catch (Exception e) {
@@ -84,10 +90,23 @@ public class CalculationServiceImpl implements CalculationService {
     @Override
     public String getStatistics() {
         return "Total expressions: " + sequence.get() + "\n" +
-            "Total operations: " + operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum() + "\n" +
+            "Total operations: " + amount + "\n" +
             "   Add (+): " + operations.get(AddService.SERVICE_NAME).getCount() + "\n" +
             "   Subtract (-): " + operations.get(SubtractService.SERVICE_NAME).getCount() + "\n" +
             "   Divide (÷): " + operations.get(DivideService.SERVICE_NAME).getCount() + "\n" +
             "   Multiply (×): " + operations.get(MultiplyService.SERVICE_NAME).getCount();
     }
+
+    @Override public Map<String, MathOperationService> getMap() {
+        return Collections.unmodifiableMap(operations);
+    }
+
+    private void recalculateAmount() {
+        amount = operations.entrySet().stream().mapToLong(v -> v.getValue().getCount()).sum();
+    }
+
+    public long getAmount() {
+        return amount;
+    }
+
 }

@@ -20,16 +20,16 @@ public class CommonConfigs {
     static {
         mathServicesCfg.put(AddService.SERVICE_NAME, new ServiceConfiguration().
             setName(AddService.SERVICE_NAME).setService(new AddService())
-            .setTotalCount(10).setMaxPerNodeCount(3));
+            .setTotalCount(10).setMaxPerNodeCount(1));
         mathServicesCfg.put(SubtractService.SERVICE_NAME, new ServiceConfiguration().
             setName(SubtractService.SERVICE_NAME).setService(new SubtractService())
-            .setTotalCount(10).setMaxPerNodeCount(3));
+            .setTotalCount(10).setMaxPerNodeCount(1));
         mathServicesCfg.put(MultiplyService.SERVICE_NAME, new ServiceConfiguration()
             .setName(MultiplyService.SERVICE_NAME).setService(new MultiplyService())
-            .setTotalCount(10).setMaxPerNodeCount(3));
+            .setTotalCount(10).setMaxPerNodeCount(1));
         mathServicesCfg.put(DivideService.SERVICE_NAME, new ServiceConfiguration()
             .setName(DivideService.SERVICE_NAME).setService(new DivideService())
-            .setTotalCount(10).setMaxPerNodeCount(3));
+            .setTotalCount(10).setMaxPerNodeCount(1));
     }
 
     public static Map<String, ServiceConfiguration> MATH_SERVICES_CONFIG() {
